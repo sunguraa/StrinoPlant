@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "presets": [
+    {
+      "id": "area88-a-rush",
+      "mapId": "area-88",
+      "name": "A-Site Rush",
+      "author": "StrinoPlant Team",
+      "description": "Basic A-site rush setup showing entry routes and agent positions for a 5-man push.",
+      "updatedAt": "2025-12-01T00:00:00.000Z"
+    },
+    {
+      "id": "base404-b-retake",
+      "mapId": "base-404",
+      "name": "B-Site Retake",
+      "author": "StrinoPlant Team",
+      "description": "Coordinated B-site retake with smoke and flash positions for defense rotation.",
+      "updatedAt": "2025-12-01T00:00:00.000Z"
+    }
+  ]
+}
