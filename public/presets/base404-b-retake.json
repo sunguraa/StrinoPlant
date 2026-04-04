@@ -1,9 +1,0 @@
-{
-  "id": "base404-b-retake",
-  "mapId": "base-404",
-  "name": "B-Site Retake",
-  "author": "StrinoPlant Team",
-  "description": "Coordinated B-site retake with smoke and flash positions for defense rotation.",
-  "updatedAt": "2025-12-01T00:00:00.000Z",
-  "canvasData": "{\"objects\":[{\"id\":\"preset_r1\",\"type\":\"arrow\",\"x\":600,\"y\":400,\"points\":[0,0,-120,80],\"stroke\":\"#3b82f6\",\"strokeWidth\":5,\"pointerLength\":15,\"pointerWidth\":12,\"layer\":\"default\"},{\"id\":\"preset_r2\",\"type\":\"arrow\",\"x\":700,\"y\":350,\"points\":[0,0,-100,120],\"stroke\":\"#3b82f6\",\"strokeWidth\":5,\"pointerLength\":15,\"pointerWidth\":12,\"layer\":\"default\"},{\"id\":\"preset_r3\",\"type\":\"text\",\"x\":650,\"y\":500,\"text\":\"Smoke B\",\"fontSize\":22,\"stroke\":\"#22c55e\",\"strokeWidth\":0,\"fill\":\"#22c55e\",\"width\":200,\"layer\":\"default\"},{\"id\":\"preset_r4\",\"type\":\"text\",\"x\":500,\"y\":300,\"text\":\"Rotate from A\",\"fontSize\":20,\"stroke\":\"#3b82f6\",\"strokeWidth\":0,\"fill\":\"#3b82f6\",\"width\":250,\"layer\":\"default\"},{\"id\":\"preset_r5\",\"type\":\"text\",\"x\":550,\"y\":250,\"text\":\"B-Site Retake\",\"fontSize\":32,\"stroke\":\"#3b82f6\",\"strokeWidth\":0,\"fill\":\"#3b82f6\",\"width\":300,\"layer\":\"default\"}],\"viewport\":{\"x\":0,\"y\":0,\"scale\":1}}"
-}

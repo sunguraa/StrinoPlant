@@ -1,0 +1,9 @@
+{
+  "id": "standard-defender-lineup-le-brun-city",
+  "mapId": "le-brun-city",
+  "name": "Standard Defender Lineup",
+  "author": "StrinoPlant Team",
+  "description": "Predicted Defender Holds Pre-Map Release",
+  "updatedAt": "2026-04-04T05:16:05.132Z",
+  "canvasData": "{\"objects\":[{\"id\":\"obj_1775186985447_1_ukvc5c\",\"type\":\"agentIcon\",\"x\":905.4508960573477,\"y\":423.1799283154122,\"stroke\":\"#3b82f6\",\"strokeWidth\":2,\"agentId\":\"kokona\",\"iconUrl\":\"/StrinoPlant/wiki-cache/agents/kokona-profile.png\",\"iconSize\":50,\"fill\":\"#3b82f6\",\"layer\":\"default\"},{\"id\":\"obj_1775186996444_4_m5u5r3\",\"type\":\"agentIcon\",\"x\":501.7232974910395,\"y\":324.8172043010754,\"stroke\":\"#3b82f6\",\"strokeWidth\":2,\"agentId\":\"maddelena\",\"iconUrl\":\"/StrinoPlant/wiki-cache/agents/maddelena-profile.png\",\"iconSize\":50,\"fill\":\"#3b82f6\",\"layer\":\"default\"},{\"id\":\"obj_1775279531947_1_jiao03\",\"type\":\"agentIcon\",\"x\":436.3072260565907,\"y\":516.156584416995,\"stroke\":\"#3b82f6\",\"strokeWidth\":2,\"agentId\":\"flavia\",\"iconUrl\":\"/StrinoPlant/wiki-cache/agents/flavia-profile.png\",\"iconSize\":50,\"fill\":\"#3b82f6\",\"layer\":\"default\"},{\"id\":\"obj_1775279537572_2_q4xo6h\",\"type\":\"agentIcon\",\"x\":619.9818820331038,\"y\":434.4383976618581,\"stroke\":\"#3b82f6\",\"strokeWidth\":2,\"agentId\":\"michele\",\"iconUrl\":\"/StrinoPlant/wiki-cache/agents/michele-profile.png\",\"iconSize\":50,\"fill\":\"#3b82f6\",\"layer\":\"default\"},{\"id\":\"obj_1775279568812_4_6zhy50\",\"type\":\"agentIcon\",\"x\":345.7679670606357,\"y\":596.3853536999188,\"stroke\":\"#3b82f6\",\"strokeWidth\":2,\"agentId\":\"cielle\",\"iconUrl\":\"/StrinoPlant/wiki-cache/agents/cielle-profile.png\",\"iconSize\":50,\"fill\":\"#3b82f6\",\"layer\":\"default\"}],\"viewport\":{\"x\":-22.75561290322588,\"y\":-13.654129032258197,\"scale\":0.7657031250000002},\"layers\":[{\"id\":\"default\",\"name\":\"Layer 1\",\"visible\":true}]}"
+}

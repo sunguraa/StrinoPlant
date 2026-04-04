@@ -17,7 +17,7 @@ const XIcon = () => (
 const LINKS = [
   {
     label: "GitHub",
-    href: "https://github.com/sunguraa",
+    href: "https://github.com/sunguraa/StrinoPlant",
     icon: GitHubIcon,
   },
   {

@@ -52,6 +52,8 @@ Setups are stored in browser localStorage during development. Wiki-derived asset
 
 Issues and pull requests are welcome.
 
+For issues or feature requests, include the goal, affected map or page, current behavior, expected behavior, and any supporting preset JSON, screenshots, or links.
+
 If you want to contribute, the most useful areas are:
 
 - Canvas usability and editor polish

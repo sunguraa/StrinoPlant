@@ -1,9 +1,0 @@
-{
-  "id": "area88-a-rush",
-  "mapId": "area-88",
-  "name": "A-Site Rush",
-  "author": "StrinoPlant Team",
-  "description": "Basic A-site rush setup showing entry routes and agent positions for a 5-man push.",
-  "updatedAt": "2025-12-01T00:00:00.000Z",
-  "canvasData": "{\"objects\":[{\"id\":\"preset_1\",\"type\":\"arrow\",\"x\":200,\"y\":500,\"points\":[0,0,150,-100],\"stroke\":\"#ef4444\",\"strokeWidth\":5,\"pointerLength\":15,\"pointerWidth\":12,\"layer\":\"default\"},{\"id\":\"preset_2\",\"type\":\"arrow\",\"x\":250,\"y\":450,\"points\":[0,0,120,-80],\"stroke\":\"#ef4444\",\"strokeWidth\":5,\"pointerLength\":15,\"pointerWidth\":12,\"layer\":\"default\"},{\"id\":\"preset_3\",\"type\":\"text\",\"x\":100,\"y\":520,\"text\":\"Entry 1\",\"fontSize\":24,\"stroke\":\"#ffffff\",\"strokeWidth\":0,\"fill\":\"#ffffff\",\"width\":200,\"layer\":\"default\"},{\"id\":\"preset_4\",\"type\":\"text\",\"x\":150,\"y\":360,\"text\":\"Flash here\",\"fontSize\":20,\"stroke\":\"#eab308\",\"strokeWidth\":0,\"fill\":\"#eab308\",\"width\":200,\"layer\":\"default\"},{\"id\":\"preset_5\",\"type\":\"text\",\"x\":50,\"y\":550,\"text\":\"A-Site Rush\",\"fontSize\":32,\"stroke\":\"#ef4444\",\"strokeWidth\":0,\"fill\":\"#ef4444\",\"width\":300,\"layer\":\"default\"}],\"viewport\":{\"x\":0,\"y\":0,\"scale\":1}}"
-}

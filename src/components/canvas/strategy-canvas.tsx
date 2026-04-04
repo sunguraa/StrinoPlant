@@ -209,11 +209,11 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     objectsRef.current = objects;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [history, setHistory] = useState<CanvasObject[][]>([]);
-    const [activeTool, setActiveTool] = useState<ToolType>("pen");
+    const [activeTool, setActiveTool] = useState<ToolType>("select");
     const [strokeColor, setStrokeColor] = useState(DEFAULT_STROKE);
     const [strokeWidth, setStrokeWidth] = useState(DEFAULT_STROKE_WIDTH);
     const [mapImage, setMapImage] = useState<HTMLImageElement | null>(null);
-    const [cursorStyle, setCursorStyle] = useState(TOOL_CURSORS.pen);
+    const [cursorStyle, setCursorStyle] = useState(TOOL_CURSORS.select);
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [marqueeRect, setMarqueeRect] = useState<SelectionBox | null>(null);
@@ -409,7 +409,7 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
           height: containerRef.current?.clientHeight ?? 600,
         };
         const fitScale = Math.min((dims.width * 0.9) / img.width, (dims.height * 0.9) / img.height);
-        const effectiveMinScale = Math.max(fitScale, MIN_SCALE);
+        const effectiveMinScale = Math.max(fitScale * 0.8, MIN_SCALE);
         setMinScale(effectiveMinScale);
 
         // Only auto-fit if no saved viewport was loaded
