@@ -8,6 +8,70 @@
       "author": "StrinoPlant Team",
       "description": "Predicted Defender Holds Pre-Map Release",
       "updatedAt": "2026-04-04T05:16:05.132Z"
+    },
+    {
+      "id": "default-defender-holds-area-88",
+      "mapId": "area-88",
+      "name": "Default Defender Holds",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:19:14.625Z"
+    },
+    {
+      "id": "default-defender-holds-cosmite",
+      "mapId": "cosmite",
+      "name": "Default Defender Holds",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:30:50.595Z"
+    },
+    {
+      "id": "default-defender-holds-ocarnus",
+      "mapId": "ocarnus",
+      "name": "Default Defender Holds",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:32:05.592Z"
+    },
+    {
+      "id": "default-defender-holds-port-euler",
+      "mapId": "port-euler",
+      "name": "Default Defender Holds",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:33:55.011Z"
+    },
+    {
+      "id": "defender-default-hold-base-404",
+      "mapId": "base-404",
+      "name": "Defender Default Hold",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:22:52.842Z"
+    },
+    {
+      "id": "defender-default-holds-cauchy-street",
+      "mapId": "cauchy-street",
+      "name": "Defender Default Holds",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:28:44.348Z"
+    },
+    {
+      "id": "defender-default-holds-space-lab",
+      "mapId": "space-lab",
+      "name": "Defender Default Holds",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:24:26.396Z"
+    },
+    {
+      "id": "defender-default-holds-windy-town",
+      "mapId": "windy-town",
+      "name": "Defender Default Holds",
+      "author": "StrinoPlant Team",
+      "description": "",
+      "updatedAt": "2026-04-06T17:26:24.496Z"
     }
   ]
 }
