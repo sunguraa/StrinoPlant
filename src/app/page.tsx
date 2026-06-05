@@ -221,7 +221,7 @@ export default function Home() {
             {RANKED_MAPS.map((map) => {
               const setups = setupsByMap(map.id);
               const isExpanded = expandedMap === map.id;
-              const introSrc = map.localIntroImage || getCachedIntroPath(map.id);
+              const introSrc = getCachedIntroPath(map.id);
 
               return (
                 <div key={map.id} className="flex flex-col">
@@ -394,7 +394,7 @@ export default function Home() {
           <div className="space-y-8">
             {RANKED_MAPS.filter((m) => presets.some((p) => p.mapId === m.id)).map((map) => {
               const mapPresets = presets.filter((p) => p.mapId === map.id);
-              const presetIntroSrc = map.localIntroImage || getCachedIntroPath(map.id);
+              const presetIntroSrc = getCachedIntroPath(map.id);
               return (
                 <div key={map.id}>
                   <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">

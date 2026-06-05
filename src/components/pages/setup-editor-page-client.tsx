@@ -224,7 +224,6 @@ function SetupEditorShell({
           <StrategyCanvas
             ref={canvasRef}
             mapWikiPage={map.wikiPage}
-            localMinimap={map.localMinimap}
             setupId={setupId}
             mapId={mapId}
             layers={layers}

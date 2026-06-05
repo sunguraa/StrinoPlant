@@ -36,7 +36,7 @@ const RANKED_MAPS = [
   { id: "cauchy-street", wikiPage: "Cauchy_Street" },
   { id: "cosmite", wikiPage: "Cosmite" },
   { id: "ocarnus", wikiPage: "Ocarnus" },
-  { id: "le-brun-city", wikiPage: "Le_Brun_City" },
+  { id: "le-brun-city", wikiPage: "Lebrun_City" },
 ] as const;
 
 const STRINOVA_AGENTS = [

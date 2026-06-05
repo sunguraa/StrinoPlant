@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-02T07:07:52.736Z",
+  "generatedAt": "2026-06-05T02:00:26.835Z",
   "images": {
     "maps/minimap-area-88.png": "https://static.wikitide.net/strinovawiki/3/3c/Minimap_Area_88.png",
     "maps/intro-area-88.png": "https://static.wikitide.net/strinovawiki/2/2c/Intro_Area_88.png",
@@ -17,6 +17,8 @@
     "maps/intro-cosmite.png": "https://static.wikitide.net/strinovawiki/0/07/Intro_Cosmite.png",
     "maps/minimap-ocarnus.png": "https://static.wikitide.net/strinovawiki/a/a7/Minimap_Ocarnus.png",
     "maps/intro-ocarnus.png": "https://static.wikitide.net/strinovawiki/9/9d/Intro_Ocarnus.png",
+    "maps/minimap-le-brun-city.png": "https://static.wikitide.net/strinovawiki/9/99/Minimap_Lebrun_City.png",
+    "maps/intro-le-brun-city.png": "https://static.wikitide.net/strinovawiki/d/db/Intro_Lebrun_City.png",
     "agents/michele-profile.png": "https://static.wikitide.net/strinovawiki/f/f9/Michele_Profile.png",
     "agents/michele-skill-1.png": "https://static.wikitide.net/strinovawiki/8/8d/Michele_Skill_1.png",
     "agents/michele-skill-2.png": "https://static.wikitide.net/strinovawiki/5/50/Michele_Skill_2.png",

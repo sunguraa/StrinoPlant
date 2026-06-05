@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as Y from "yjs";
 import type { CanvasObject, LayerConfig } from "@/types/canvas";
 import { clearCursor, getRemoteUsers, updateCursorPosition, updateSelection } from "./awareness";
@@ -435,19 +435,36 @@ export function useCollab({
     }
   }, [stopSession]);
 
-  return {
-    isConnected,
-    peerCount,
-    remoteUsers,
-    collabLink,
-    syncObject,
-    removeObject,
-    syncBatch,
-    syncLayers,
-    setCursor,
-    clearCursorFn,
-    setSelection,
-    startCollab,
-    stopCollab,
-  };
+  return useMemo(
+    () => ({
+      isConnected,
+      peerCount,
+      remoteUsers,
+      collabLink,
+      syncObject,
+      removeObject,
+      syncBatch,
+      syncLayers,
+      setCursor,
+      clearCursorFn,
+      setSelection,
+      startCollab,
+      stopCollab,
+    }),
+    [
+      isConnected,
+      peerCount,
+      remoteUsers,
+      collabLink,
+      syncObject,
+      removeObject,
+      syncBatch,
+      syncLayers,
+      setCursor,
+      clearCursorFn,
+      setSelection,
+      startCollab,
+      stopCollab,
+    ],
+  );
 }

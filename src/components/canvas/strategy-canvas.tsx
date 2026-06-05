@@ -29,7 +29,6 @@ import {
 import { serializeCanvas, deserializeCanvas, screenToCanvas } from "@/canvas/state";
 import { getUtilityIconPath } from "@/lib/wiki/utilities";
 import {
-  getCachedMinimapPath,
   getCachedSkillPath,
   getCachedBarrierPath,
   getCachedBlankPath,
@@ -137,7 +136,6 @@ export interface NameEditState {
 // ---------------------------------------------------------------------------
 interface StrategyCanvasProps {
   mapWikiPage?: string;
-  localMinimap?: string;
   setupId?: string;
   mapId?: string;
   layers?: LayerConfig[];
@@ -161,7 +159,6 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
   function StrategyCanvas(
     {
       mapWikiPage,
-      localMinimap,
       setupId,
       mapId,
       layers: sharedLayersProp,
@@ -182,9 +179,10 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     const stageRef = useRef<Konva.Stage>(null);
     const transformerRef = useRef<Konva.Transformer>(null);
     const isDrawing = useRef(false);
+    const drawingObjId = useRef<string | null>(null);
+    const spaceHeld = useRef(false);
     const isPanning = useRef(false);
     const panStart = useRef({ x: 0, y: 0 });
-    const spaceHeld = useRef(false);
     const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const marqueeStart = useRef<{ x: number; y: number } | null>(null);
     const selectionDragState = useRef<{
@@ -193,15 +191,14 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     } | null>(null);
 
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+    const storedCanvasStateRef = useRef(loadStoredCanvasState(setupId));
     const [viewport, setViewport] = useState<Viewport>(() => {
-      const storedState = loadStoredCanvasState(setupId);
-      if (storedState) return storedState.viewport;
+      if (storedCanvasStateRef.current) return storedCanvasStateRef.current.viewport;
 
       return { ...DEFAULT_VIEWPORT };
     });
     const [objects, setObjects] = useState<CanvasObject[]>(() => {
-      const storedState = loadStoredCanvasState(setupId);
-      if (storedState) return storedState.objects;
+      if (storedCanvasStateRef.current) return storedCanvasStateRef.current.objects;
 
       return [];
     });
@@ -259,8 +256,17 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     // -----------------------------------------------------------------------
     // Collab: useCollab hook lives inside the canvas to avoid state relay loops
     // -----------------------------------------------------------------------
+    // Queue for remote changes while local user is drawing
+    const remoteChangeQueueRef = useRef<Array<{ objects: CanvasObject[]; layers: LayerConfig[] }>>([]);
+
     const handleRemoteChange = useCallback(
       (remoteState: { objects: CanvasObject[]; layers: LayerConfig[] }) => {
+        // If local user is actively drawing, queue the remote change instead of applying immediately
+        if (isDrawing.current) {
+          remoteChangeQueueRef.current.push(remoteState);
+          return;
+        }
+
         commitObjects(remoteState.objects);
 
         if (onLayersChange) {
@@ -483,12 +489,8 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
         img.src = src;
       }
 
-      // Le Brun City doesn't have barrier/blank variants yet
-      const isLeBrunCity = mapId === "le-brun-city";
       let src: string;
-      if (isLeBrunCity) {
-        src = localMinimap || getCachedMinimapPath(mapId ?? "");
-      } else if (showBarriers) {
+      if (showBarriers) {
         src = getCachedBarrierPath(mapId ?? "");
       } else {
         src = getCachedBlankPath(mapId ?? "");
@@ -498,7 +500,7 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
       return () => {
         cancelled = true;
       };
-    }, [mapWikiPage, localMinimap, handleMapImageLoaded, mapId, showBarriers]);
+    }, [mapWikiPage, handleMapImageLoaded, mapId, showBarriers]);
 
     // -----------------------------------------------------------------------
     // Auto-save (debounced 500ms)
@@ -560,11 +562,7 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     }, []);
 
     const updateCanvasObject = useCallback(
-      (
-        objectId: string,
-        updater: (obj: CanvasObject) => CanvasObject,
-        options?: { sync?: boolean },
-      ) => {
+      (objectId: string, updater: (obj: CanvasObject) => CanvasObject, options?: { sync?: boolean }) => {
         const currentObjects = objectsRef.current;
         let updatedObject: CanvasObject | null = null;
 
@@ -579,7 +577,13 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
           return null;
         }
 
-        commitObjects(nextObjects);
+        // Only commit to React state (and trigger re-render) on sync (drag end)
+        // During drag move, only update the ref to avoid infinite update loop
+        if (options?.sync) {
+          commitObjects(nextObjects);
+        } else {
+          objectsRef.current = nextObjects;
+        }
 
         if (options?.sync && updatedObject) {
           collab.syncObject(updatedObject);
@@ -942,6 +946,7 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
 
         const obj = createCanvasObject(objectType, overrides);
         setObjects((prev) => [...prev, obj]);
+        drawingObjId.current = obj.id;
       },
       [
         activeTool,
@@ -995,35 +1000,40 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
         if (!pos) return;
 
         setObjects((prev) => {
-          const updated = prev.slice();
-          const last = updated[updated.length - 1];
+          const last = prev.find((o) => o.id === drawingObjId.current);
           if (!last) return prev;
 
-          if (activeTool === "pen") {
-            updated[updated.length - 1] = {
-              ...last,
-              points: [...(last.points ?? []), pos.x - last.x, pos.y - last.y],
-            };
-          } else if (activeTool === "line" || activeTool === "arrow") {
-            updated[updated.length - 1] = {
-              ...last,
-              points: [0, 0, pos.x - last.x, pos.y - last.y],
-            };
-          } else if (activeTool === "rect") {
-            updated[updated.length - 1] = {
-              ...last,
-              width: pos.x - last.x,
-              height: pos.y - last.y,
-            };
-          } else if (activeTool === "circle") {
-            const dx = pos.x - last.x;
-            const dy = pos.y - last.y;
-            updated[updated.length - 1] = {
-              ...last,
-              radius: Math.sqrt(dx * dx + dy * dy),
-            };
-          }
-          return updated;
+          const next = prev.map((o) => {
+            if (o.id !== drawingObjId.current) return o;
+
+            if (activeTool === "pen") {
+              return {
+                ...o,
+                points: [...(o.points ?? []), pos.x - o.x, pos.y - o.y],
+              };
+            } else if (activeTool === "line" || activeTool === "arrow") {
+              return {
+                ...o,
+                points: [0, 0, pos.x - o.x, pos.y - o.y],
+              };
+            } else if (activeTool === "rect") {
+              return {
+                ...o,
+                width: pos.x - o.x,
+                height: pos.y - o.y,
+              };
+            } else if (activeTool === "circle") {
+              const dx = pos.x - o.x;
+              const dy = pos.y - o.y;
+              return {
+                ...o,
+                radius: Math.sqrt(dx * dx + dy * dy),
+              };
+            }
+            return o;
+          });
+
+          return next;
         });
       },
       [activeTool, getCanvasPos, clampViewport],
@@ -1078,11 +1088,28 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
 
         // Sync the last drawn object to collab when drawing finishes
         if (isDrawing.current && collabEnabled) {
-          const lastObj = objects[objects.length - 1];
-          if (lastObj) collab.syncObject(lastObj);
+          const lastObjId = drawingObjId.current;
+          if (lastObjId) {
+            const lastObj = objects.find((o) => o.id === lastObjId);
+            if (lastObj) collab.syncObject(lastObj);
+          }
+        }
+
+        // Flush any queued remote changes that arrived while we were drawing
+        if (remoteChangeQueueRef.current.length > 0) {
+          const queued = remoteChangeQueueRef.current;
+          remoteChangeQueueRef.current = [];
+          for (const remoteState of queued) {
+            commitObjects(remoteState.objects);
+            if (onLayersChange) {
+              skipNextLayerSyncRef.current = true;
+              onLayersChange(remoteState.layers);
+            }
+          }
         }
 
         isDrawing.current = false;
+        drawingObjId.current = null;
         isPanning.current = false;
       },
       [
@@ -1094,6 +1121,8 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
         collabEnabled,
         collab,
         objects,
+        commitObjects,
+        onLayersChange,
       ],
     );
 

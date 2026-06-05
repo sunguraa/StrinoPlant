@@ -1,13 +1,7 @@
-import { normalizePublicAssetUrl } from "@/lib/base-path";
-
 export interface MapConfig {
   id: string;
   name: string;
   wikiPage: string;
-  /** Optional local fallback minimap path (under /public) when wiki image is unavailable */
-  localMinimap?: string;
-  /** Optional local intro image for the home page card when wiki intro is unavailable */
-  localIntroImage?: string;
 }
 
 const RAW_RANKED_MAPS: MapConfig[] = [
@@ -19,22 +13,10 @@ const RAW_RANKED_MAPS: MapConfig[] = [
   { id: "cauchy-street", name: "Cauchy Street", wikiPage: "Cauchy_Street" },
   { id: "cosmite", name: "Cosmite", wikiPage: "Cosmite" },
   { id: "ocarnus", name: "Ocarnus", wikiPage: "Ocarnus" },
-  {
-    id: "le-brun-city",
-    name: "Le Brun City",
-    wikiPage: "Le_Brun_City",
-    localMinimap: "/maps/minimap-le-brun-city.png",
-    localIntroImage: "/maps/intro-le-brun-city.jpg",
-  },
+  { id: "le-brun-city", name: "Le Brun City", wikiPage: "Lebrun_City" },
 ];
 
-export const RANKED_MAPS: MapConfig[] = RAW_RANKED_MAPS.map((map) => ({
-  ...map,
-  localMinimap: map.localMinimap ? normalizePublicAssetUrl(map.localMinimap) : map.localMinimap,
-  localIntroImage: map.localIntroImage
-    ? normalizePublicAssetUrl(map.localIntroImage)
-    : map.localIntroImage,
-}));
+export const RANKED_MAPS: MapConfig[] = RAW_RANKED_MAPS;
 
 export function getMapById(mapId: string): MapConfig | undefined {
   return RANKED_MAPS.find((map) => map.id === mapId);

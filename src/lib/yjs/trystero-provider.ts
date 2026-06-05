@@ -147,9 +147,9 @@ class TrysteroCollabProvider implements CollabProvider {
   destroy(): void {
     if (this.destroyed) return;
 
-    this.clearLocalAwareness();
-
     this.destroyed = true;
+
+    this.clearLocalAwareness();
     this.clearTimers();
     this.finishInitialSync(false);
     this.doc.off("update", this.handleLocalDocUpdate);
