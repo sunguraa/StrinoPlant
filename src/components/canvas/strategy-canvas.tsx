@@ -28,11 +28,7 @@ import {
 } from "@/canvas/schema";
 import { serializeCanvas, deserializeCanvas, screenToCanvas } from "@/canvas/state";
 import { getUtilityIconPath } from "@/lib/wiki/utilities";
-import {
-  getCachedSkillPath,
-  getCachedBarrierPath,
-  getCachedBlankPath,
-} from "@/lib/wiki/cache";
+import { getCachedSkillPath, getCachedBarrierPath, getCachedBlankPath } from "@/lib/wiki/cache";
 import { getSetup, saveSetup } from "@/lib/storage";
 import type {
   CanvasObject,
@@ -257,7 +253,9 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     // Collab: useCollab hook lives inside the canvas to avoid state relay loops
     // -----------------------------------------------------------------------
     // Queue for remote changes while local user is drawing
-    const remoteChangeQueueRef = useRef<Array<{ objects: CanvasObject[]; layers: LayerConfig[] }>>([]);
+    const remoteChangeQueueRef = useRef<Array<{ objects: CanvasObject[]; layers: LayerConfig[] }>>(
+      [],
+    );
 
     const handleRemoteChange = useCallback(
       (remoteState: { objects: CanvasObject[]; layers: LayerConfig[] }) => {
@@ -562,7 +560,11 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     }, []);
 
     const updateCanvasObject = useCallback(
-      (objectId: string, updater: (obj: CanvasObject) => CanvasObject, options?: { sync?: boolean }) => {
+      (
+        objectId: string,
+        updater: (obj: CanvasObject) => CanvasObject,
+        options?: { sync?: boolean },
+      ) => {
         const currentObjects = objectsRef.current;
         let updatedObject: CanvasObject | null = null;
 

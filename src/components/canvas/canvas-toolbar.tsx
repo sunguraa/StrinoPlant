@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import type { CanvasObjectType, ToolType } from "@/types/canvas";
 import type { NameEditState } from "@/components/canvas/strategy-canvas";
 
@@ -272,71 +273,70 @@ export function CanvasToolbar({
               ))}
         </div>
 
-        <Separator orientation="vertical" className="mx-1.5 h-10" />
-
-        {/* Undo */}
-        <Tooltip>
-          <TooltipTrigger render={<div className="inline-flex" />}>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={onUndo}
-              aria-label="Undo"
-              className="h-8 w-8 xl:h-10 xl:w-10"
-            >
-              <Undo2 className="h-4 w-4 xl:h-5 xl:w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            Undo{" "}
-            <kbd className="ml-1.5 rounded border border-border/60 bg-muted/80 px-1 text-[10px] text-muted-foreground">
-              Ctrl+Z
-            </kbd>
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Delete selected */}
-        <Tooltip>
-          <TooltipTrigger render={<div className="inline-flex" />}>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={onDelete}
-              aria-label="Delete selected"
-              className="h-8 w-8 xl:h-10 xl:w-10 text-destructive"
-              disabled={!hasSelection}
-            >
-              <Trash2 className="h-4 w-4 xl:h-5 xl:w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            Delete Selected{" "}
-            <kbd className="ml-1.5 rounded border border-border/60 bg-muted/80 px-1 text-[10px] text-muted-foreground">
-              Del
-            </kbd>
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Upload Image */}
-        <Separator orientation="vertical" className="mx-1.5 h-10" />
-        <Tooltip>
-          <TooltipTrigger render={<div className="inline-flex" />}>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={onUploadImage}
-              aria-label="Upload Image"
-              className="h-8 w-8 xl:h-10 xl:w-10"
-            >
-              <ImagePlus className="h-4 w-4 xl:h-5 xl:w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            Upload Image
-          </TooltipContent>
-        </Tooltip>
-
+        {/* Right cluster — wraps to a second row as a whole, after the S/M/L widths */}
         <div className="ml-auto flex flex-wrap items-center gap-x-1.5 gap-y-2 xl:gap-x-2.5">
+          {/* Undo */}
+          <Tooltip>
+            <TooltipTrigger render={<div className="inline-flex" />}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onUndo}
+                aria-label="Undo"
+                className="h-8 w-8 xl:h-10 xl:w-10"
+              >
+                <Undo2 className="h-4 w-4 xl:h-5 xl:w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Undo{" "}
+              <kbd className="ml-1.5 rounded border border-border/60 bg-muted/80 px-1 text-[10px] text-muted-foreground">
+                Ctrl+Z
+              </kbd>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Delete selected */}
+          <Tooltip>
+            <TooltipTrigger render={<div className="inline-flex" />}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onDelete}
+                aria-label="Delete selected"
+                className="h-8 w-8 xl:h-10 xl:w-10 text-destructive"
+                disabled={!hasSelection}
+              >
+                <Trash2 className="h-4 w-4 xl:h-5 xl:w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Delete Selected{" "}
+              <kbd className="ml-1.5 rounded border border-border/60 bg-muted/80 px-1 text-[10px] text-muted-foreground">
+                Del
+              </kbd>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Upload Image */}
+          <Separator orientation="vertical" className="mx-1.5 h-10" />
+          <Tooltip>
+            <TooltipTrigger render={<div className="inline-flex" />}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onUploadImage}
+                aria-label="Upload Image"
+                className="h-8 w-8 xl:h-10 xl:w-10"
+              >
+                <ImagePlus className="h-4 w-4 xl:h-5 xl:w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Upload Image
+            </TooltipContent>
+          </Tooltip>
+
           {/* Zoom indicator */}
           <span className="text-lg tabular-nums text-muted-foreground">
             {Math.round(zoom * 100)}%
@@ -438,6 +438,8 @@ export function CanvasToolbar({
           )}
 
           <Separator orientation="vertical" className="mx-1.5 h-10" />
+
+          <ThemeToggle className="text-base" />
 
           {/* StrinoPlant home link */}
           <Link

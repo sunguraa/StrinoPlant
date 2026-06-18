@@ -1,6 +1,6 @@
 # StrinoPlant
 
-StrinoPlant is a map-based strategy planner for Strinova players who want to sketch executes, save setups, and share ideas without signing in or standing up backend infrastructure.
+StrinoPlant is a map-based strategy planner for [Strinova](https://store.steampowered.com/app/1282270/Strinova/) players who want to sketch executes, save setups, and share ideas without signing in or standing up backend infrastructure.
 
 It is built for ranked players, scrim groups, shotcallers, coaches, and anyone who wants a fast way to turn an idea into a visual plan. Open a map, drag agents and utility onto the board, draw the route, and keep everything local in the browser unless you choose to export or share a collaboration link.
 
@@ -88,3 +88,9 @@ Community presets are planned to be a bigger part of the project. If you have a 
 ## Project Scope
 
 This repository is public and under active development. Expect regular iteration as the planner, preset library, and collaboration workflow continue to improve.
+
+## License
+
+This project is licensed under the GNU General Public License v3 (GPLv3) with additional attribution terms under Section 7(b). See the `LICENSE` and `NOTICE` files in the root of this repository for the full legal text and attribution requirements.
+
+Map images and agent/utility assets are credited to the [Strinova Wiki](https://strinova.org/wiki/).

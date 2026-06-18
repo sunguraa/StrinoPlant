@@ -9,6 +9,59 @@ import type { AgentConfig } from "@/types/wiki";
 
 type Tab = "attack" | "defense";
 
+/**
+ * Ability dropdown for a row. Animates its own height (0fr→1fr) so the rows
+ * below slide rather than jump. Retains the last agent's content while
+ * collapsing so the close transition stays smooth.
+ */
+function AbilityPanel({ agent, side }: { agent: AgentConfig | undefined; side: Tab }) {
+  const open = !!agent;
+  // Retain the last shown agent so content stays visible while collapsing.
+  const [shown, setShown] = useState<AgentConfig | undefined>(agent);
+  if (agent && agent !== shown) {
+    setShown(agent);
+  }
+
+  return (
+    <div
+      className={cn(
+        "grid transition-[grid-template-rows] duration-200 ease-out",
+        open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+      )}
+    >
+      <div className="overflow-hidden">
+        {shown && (
+          <div className="mt-1 flex justify-center gap-3 rounded-lg bg-muted/50 p-2">
+            {SKILL_SLOTS.map((slot) => (
+              <div
+                key={slot.id}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("application/x-ability", `${shown.id}:${slot.fileNum}`);
+                  e.dataTransfer.setData("application/x-agent-side", side);
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
+                className="flex cursor-grab flex-col items-center gap-1 active:cursor-grabbing"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getCachedSkillPath(shown.id, slot.fileNum)}
+                  alt={slot.label}
+                  width={28}
+                  height={28}
+                  className="h-9 w-9 rounded"
+                  draggable={false}
+                />
+                <span className="text-xs text-muted-foreground">{slot.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const ATTACK_FACTIONS = ["The Scissors", "Urbino"] as const;
 const DEFENSE_FACTIONS = ["P.U.S", "Urbino"] as const;
 
@@ -50,12 +103,13 @@ export function Sidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "flex w-56 xl:w-72 2xl:w-80 shrink-0 flex-col overflow-hidden border-r border-border/40 bg-muted/30",
+        // Width scales with viewport height so all editor panels keep a consistent ratio
+        "flex w-[clamp(12rem,30vh,20rem)] shrink-0 flex-col overflow-hidden border-r border-border/40 bg-muted/30",
         className,
       )}
     >
       {/* Tabs */}
-      <div className="flex border-b border-border/40">
+      <div className="flex shrink-0 border-b border-border/40">
         {(["attack", "defense"] as const).map((tab) => (
           <button
             key={tab}
@@ -75,83 +129,61 @@ export function Sidebar({ className }: { className?: string }) {
         ))}
       </div>
 
-      {/* Agent grid — rows of 3 with ability dropdown */}
+      {/* Agent grid — rows of 3, icons sized to fill the available height */}
       <div className="flex-1 overflow-y-auto px-3 py-3">
-        <div className="flex flex-col gap-3 xl:gap-5">
+        <div className="flex flex-col gap-[1.5vh]">
           {rows.map((row, rowIdx) => {
             const expandedAgent = row.find((a) => a.id === expandedAgentId);
             return (
-              <div key={rowIdx} className="grid grid-cols-3 gap-3 xl:gap-5">
-                {row.map((agent) => {
-                  const isExpanded = expandedAgentId === agent.id;
-                  return (
-                    <div key={agent.id} className="flex flex-col items-center gap-1">
-                      <div
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, agent.id)}
-                        className="flex cursor-grab flex-col items-center gap-1 active:cursor-grabbing"
-                        title={agent.name}
-                      >
-                        <div className={cn("rounded-full border-4 p-0.5", ringColor)}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={agent.profileUrl}
-                            alt={agent.name}
-                            width={72}
-                            height={72}
-                            className="h-14 w-14 rounded-full object-cover xl:h-18 xl:w-18"
-                            draggable={false}
-                          />
+              <div key={rowIdx} className="flex flex-col gap-1">
+                <div className="grid grid-cols-3 gap-2">
+                  {row.map((agent) => {
+                    const isExpanded = expandedAgentId === agent.id;
+                    return (
+                      <div key={agent.id} className="flex min-w-0 flex-col items-center gap-1">
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, agent.id)}
+                          className="cursor-grab active:cursor-grabbing"
+                          title={agent.name}
+                        >
+                          <div
+                            className={cn(
+                              "aspect-square w-[clamp(2.5rem,9vh,5rem)] rounded-full border-4 p-0.5",
+                              ringColor,
+                            )}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={agent.profileUrl}
+                              alt={agent.name}
+                              width={72}
+                              height={72}
+                              className="h-full w-full rounded-full object-cover"
+                              draggable={false}
+                            />
+                          </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(agent.id)}
+                          className="flex max-w-full items-center gap-0.5 text-xs font-medium text-foreground/80 transition-colors hover:text-foreground"
+                        >
+                          <span className="truncate">{agent.name}</span>
+                          <ChevronDown
+                            className={cn(
+                              "h-3 w-3 shrink-0 transition-transform",
+                              isExpanded && "rotate-180",
+                            )}
+                          />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => toggleExpanded(agent.id)}
-                        className="flex items-center gap-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        <span className="max-w-full truncate">{agent.name}</span>
-                        <ChevronDown
-                          className={cn(
-                            "h-3 w-3 shrink-0 transition-transform",
-                            isExpanded && "rotate-180",
-                          )}
-                        />
-                      </button>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
 
                 {/* Ability dropdown — below the row, spans all 3 columns */}
-                {expandedAgent && (
-                  <div className="col-span-3 flex justify-center gap-3 rounded-lg bg-muted/50 p-2">
-                    {SKILL_SLOTS.map((slot) => (
-                      <div
-                        key={slot.id}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData(
-                            "application/x-ability",
-                            `${expandedAgent.id}:${slot.fileNum}`,
-                          );
-                          e.dataTransfer.setData("application/x-agent-side", activeTab);
-                          e.dataTransfer.effectAllowed = "copy";
-                        }}
-                        className="flex cursor-grab flex-col items-center gap-1 active:cursor-grabbing"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={getCachedSkillPath(expandedAgent.id, slot.fileNum)}
-                          alt={slot.label}
-                          width={28}
-                          height={28}
-                          className="h-9 w-9 rounded"
-                          draggable={false}
-                        />
-                        <span className="text-xs text-muted-foreground">{slot.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <AbilityPanel agent={expandedAgent} side={activeTab} />
               </div>
             );
           })}
@@ -159,7 +191,7 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-border/40 px-3 py-2">
+      <div className="shrink-0 border-t border-border/40 px-3 py-2">
         <p className="text-xs text-muted-foreground/60">Drag agents onto the canvas</p>
       </div>
     </aside>

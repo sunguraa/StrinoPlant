@@ -5,6 +5,10 @@ node_modules/
 
 # testing
 coverage/
+test-results/
+playwright-report/
+lint.json
+*.lint.json
 
 # next.js
 .next/
@@ -39,6 +43,7 @@ next-env.d.ts
 .vscode/settings.json
 
 # private project context
+.local/
 .devcontainer/
 .github/agents/
 .github/prompts/

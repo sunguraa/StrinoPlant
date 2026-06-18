@@ -3,7 +3,6 @@
 import { toAbsoluteUrl } from "@/lib/base-path";
 import { getSetupEditorHref } from "@/lib/routes";
 
-
 /**
  * Yjs document and transport provider factory for P2P collaboration.
  *

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Eye, EyeOff, Trash2, Plus } from "lucide-react";
+import { Eye, EyeOff, Trash2, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STRINOVA_UTILITIES, getUtilityIconPath } from "@/lib/wiki/utilities";
 import type { LayerConfig } from "@/types/canvas";
@@ -60,52 +60,55 @@ export function RightSidebar({
   return (
     <aside
       className={cn(
-        "flex w-56 xl:w-72 2xl:w-80 shrink-0 flex-col overflow-hidden border-l border-border/40 bg-muted/30",
+        // Width scales with viewport height so all editor panels keep a consistent ratio
+        "flex w-[clamp(12rem,30vh,20rem)] shrink-0 flex-col overflow-hidden border-l border-border/40 bg-muted/30",
         className,
       )}
     >
-      {/* Utilities section */}
-      <div className="border-b border-border/40 px-4 py-3">
-        <h3 className="mb-3 text-base font-semibold uppercase tracking-wider text-muted-foreground">
+      {/* Utilities section — capped to roughly half the sidebar height */}
+      <div className="flex max-h-[50%] shrink-0 flex-col overflow-hidden border-b border-border/40">
+        <h3 className="px-4 pt-3 pb-2 text-base font-semibold uppercase tracking-wider text-muted-foreground">
           Utilities
         </h3>
-        <div className="grid grid-cols-3 gap-3">
-          {STRINOVA_UTILITIES.map((util) => {
-            const iconUrl = getUtilityIconPath(util.id);
-            return (
-              <div
-                key={util.id}
-                draggable
-                onDragStart={(e) => handleUtilityDragStart(e, util.id)}
-                className="flex cursor-grab flex-col items-center gap-1.5 transition-opacity hover:opacity-80 active:cursor-grabbing"
-              >
-                <div className="flex h-14 w-14 xl:h-18 xl:w-18 items-center justify-center rounded-full bg-[#2a2a3e] ring-1 ring-border/40">
-                  {iconUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={iconUrl}
-                      alt={util.name}
-                      width={44}
-                      height={44}
-                      className="h-9 w-9 xl:h-11 xl:w-11"
-                      draggable={false}
-                    />
-                  ) : (
-                    <div className="h-9 w-9 xl:h-11 xl:w-11 animate-pulse rounded-full bg-muted-foreground/20" />
-                  )}
+        <div className="flex-1 overflow-y-auto px-4 pb-3">
+          <div className="grid grid-cols-3 gap-3">
+            {STRINOVA_UTILITIES.map((util) => {
+              const iconUrl = getUtilityIconPath(util.id);
+              return (
+                <div
+                  key={util.id}
+                  draggable
+                  onDragStart={(e) => handleUtilityDragStart(e, util.id)}
+                  className="flex cursor-grab flex-col items-center gap-1.5 transition-opacity hover:opacity-80 active:cursor-grabbing"
+                >
+                  <div className="flex aspect-square w-[clamp(2.5rem,8vh,4.5rem)] items-center justify-center rounded-full bg-muted ring-1 ring-border/40">
+                    {iconUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={iconUrl}
+                        alt={util.name}
+                        width={44}
+                        height={44}
+                        className="h-[64%] w-[64%]"
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="h-[64%] w-[64%] animate-pulse rounded-full bg-muted-foreground/20" />
+                    )}
+                  </div>
+                  <span className="text-center text-xs leading-tight text-muted-foreground">
+                    {util.name}
+                  </span>
                 </div>
-                <span className="text-center text-xs leading-tight text-muted-foreground">
-                  {util.name}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Layers section */}
-      <div className="flex flex-1 flex-col overflow-hidden px-4 py-3">
-        <div className="mb-3 flex items-center justify-between">
+      {/* Layers section — fills remaining height, scrolls when long */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3">
+        <div className="mb-3 flex shrink-0 items-center justify-between">
           <h3 className="text-base font-semibold uppercase tracking-wider text-muted-foreground">
             Layers
           </h3>
@@ -124,7 +127,7 @@ export function RightSidebar({
               <div
                 key={layer.id}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors",
+                  "group flex items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors",
                   activeLayerId === layer.id
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-muted/50",
@@ -135,6 +138,7 @@ export function RightSidebar({
                   type="button"
                   onClick={() => onToggleLayer(layer.id)}
                   className="shrink-0 p-0.5 transition-colors hover:text-foreground"
+                  aria-label={layer.visible ? `Hide ${layer.name}` : `Show ${layer.name}`}
                 >
                   {layer.visible ? (
                     <Eye className="h-5 w-5" />
@@ -143,7 +147,7 @@ export function RightSidebar({
                   )}
                 </button>
 
-                {/* Name — click to select, double-click to rename */}
+                {/* Name — click to select, double-click or pencil to rename */}
                 {renamingLayerId === layer.id ? (
                   <input
                     type="text"
@@ -161,17 +165,27 @@ export function RightSidebar({
                     className="min-w-0 flex-1 rounded border border-border bg-background px-1.5 py-0.5 text-sm outline-none"
                   />
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => onSelectLayer(layer.id)}
-                    onDoubleClick={() => startRename(layer.id)}
-                    className={cn(
-                      "min-w-0 flex-1 truncate text-left",
-                      !layer.visible && "line-through opacity-40",
-                    )}
-                  >
-                    {layer.name}
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onSelectLayer(layer.id)}
+                      onDoubleClick={() => startRename(layer.id)}
+                      className={cn(
+                        "min-w-0 flex-1 truncate text-left",
+                        !layer.visible && "line-through opacity-40",
+                      )}
+                    >
+                      {layer.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => startRename(layer.id)}
+                      className="shrink-0 p-0.5 text-muted-foreground/50 opacity-0 transition-all hover:text-foreground group-hover:opacity-100"
+                      aria-label={`Rename ${layer.name}`}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  </>
                 )}
 
                 {/* Delete — only if more than one layer */}
@@ -180,6 +194,7 @@ export function RightSidebar({
                     type="button"
                     onClick={() => onDeleteLayer(layer.id)}
                     className="shrink-0 p-0.5 text-muted-foreground/40 transition-colors hover:text-red-400"
+                    aria-label={`Delete ${layer.name}`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
