@@ -2035,7 +2035,7 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
         />
         <div
           ref={containerRef}
-          className="relative flex-1 bg-[#1a1a2e]"
+          className="relative flex-1 bg-background"
           style={{ cursor: cursorStyle }}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
