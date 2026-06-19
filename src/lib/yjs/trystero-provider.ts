@@ -2,11 +2,12 @@
 
 import {
   joinRoom,
+  getRelaySockets,
   type ActionSender,
   type JsonValue,
-  type NostrRoomConfig,
+  type MqttRoomConfig,
   type Room,
-} from "trystero";
+} from "@trystero-p2p/mqtt";
 import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
 import {
@@ -25,8 +26,59 @@ const DEFAULT_TRYSTERO_APP_ID = "strinoplant-collab";
 const INITIAL_DISCOVERY_WINDOW_MS = 250;
 const REMOTE_SYNC_RESPONSE_TIMEOUT_MS = 1200;
 
+// Curated MQTT signaling brokers, shared verbatim by StrinoBans + StrinoPlant so both
+// clients always connect to the same set. shiftr.io is listed first because it runs on
+// 443 with embedded credentials — the only one that survives networks that block WSS on
+// non-standard ports (the rest sit on 8081/8084/8884, which mobile/corporate firewalls
+// often drop). Trystero tolerates dead brokers, so the others stay as same-network
+// fallbacks. Override with NEXT_PUBLIC_TRYSTERO_RELAY_URLS if needed.
+const DEFAULT_TRYSTERO_RELAY_URLS = [
+  "wss://public:public@public.cloud.shiftr.io",
+  "wss://broker.emqx.io:8084/mqtt",
+  "wss://broker.hivemq.com:8884/mqtt",
+  "wss://test.mosquitto.org:8081/mqtt",
+];
+
 interface AwarenessMetadataRecord {
   clientIds?: number[];
+}
+
+// Flip on per-device with `?p2pdebug=1` in the URL or `localStorage.p2pdebug = "1"`.
+// Traces every P2P lifecycle stage so a failing handshake is visible across devices.
+function isDebugEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (new URLSearchParams(window.location.search).get("p2pdebug") === "1") return true;
+    return window.localStorage.getItem("p2pdebug") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function debugLog(...args: unknown[]): void {
+  if (isDebugEnabled()) console.log("[StrinoPlant P2P]", ...args);
+}
+
+const WS_STATE = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
+
+// Reports which signaling brokers actually have an open socket on THIS device — the
+// difference between "no broker reachable on this network" and "connected but no peer".
+function logBrokerStatus(label: string): void {
+  if (!isDebugEnabled()) return;
+  try {
+    const sockets = getRelaySockets() as Record<string, { readyState?: number } | undefined>;
+    const entries = Object.entries(sockets);
+    if (entries.length === 0) {
+      debugLog(label, "broker sockets: (none registered)");
+      return;
+    }
+    const status = entries.map(
+      ([url, s]) => `${url} -> ${WS_STATE[s?.readyState ?? -1] ?? `state ${s?.readyState}`}`,
+    );
+    debugLog(label, "broker sockets:\n" + status.join("\n"));
+  } catch (error) {
+    debugLog(label, "getRelaySockets failed", error);
+  }
 }
 
 function splitRelayUrls(value: string | undefined): string[] | undefined {
@@ -38,14 +90,14 @@ function splitRelayUrls(value: string | undefined): string[] | undefined {
   return urls && urls.length > 0 ? urls : undefined;
 }
 
-function buildTrysteroConfig(): NostrRoomConfig {
-  const relayUrls = splitRelayUrls(process.env.NEXT_PUBLIC_TRYSTERO_RELAY_URLS);
+function buildTrysteroConfig(): MqttRoomConfig {
+  const envRelays = splitRelayUrls(process.env.NEXT_PUBLIC_TRYSTERO_RELAY_URLS);
   const password = process.env.NEXT_PUBLIC_TRYSTERO_PASSWORD?.trim() || undefined;
 
   return {
     appId: process.env.NEXT_PUBLIC_TRYSTERO_APP_ID?.trim() || DEFAULT_TRYSTERO_APP_ID,
     password,
-    relayUrls,
+    relayUrls: envRelays ?? DEFAULT_TRYSTERO_RELAY_URLS,
   };
 }
 
@@ -97,7 +149,19 @@ class TrysteroCollabProvider implements CollabProvider {
   constructor(roomName: string, doc: Y.Doc) {
     this.doc = doc;
     this.awareness = new Awareness(doc);
-    this.room = joinRoom(buildTrysteroConfig(), roomName);
+    const config = buildTrysteroConfig();
+    debugLog("joining room", {
+      roomName,
+      appId: config.appId,
+      relayUrls: config.relayUrls ?? "(library defaults)",
+      clientId: doc.clientID,
+    });
+    this.room = joinRoom(config, roomName);
+
+    if (isDebugEnabled()) {
+      setTimeout(() => logBrokerStatus("@2s"), 2000);
+      setTimeout(() => logBrokerStatus("@6s"), 6000);
+    }
 
     const [sendSyncMessage, receiveSyncMessage] =
       this.room.makeAction<Uint8Array>(TRYSTERO_SYNC_ACTION);
@@ -168,6 +232,11 @@ class TrysteroCollabProvider implements CollabProvider {
 
     this.initialSyncResolved = true;
     this.clearTimers();
+    debugLog("initial sync RESOLVED", {
+      shouldSeedLocal,
+      discoveredPeerCount: this.peerIds.size,
+      didReceiveRemoteDoc: this.didReceiveRemoteDoc,
+    });
     this.resolveInitialSync({
       shouldSeedLocal,
       discoveredPeerCount: this.peerIds.size,
@@ -223,11 +292,13 @@ class TrysteroCollabProvider implements CollabProvider {
     if (this.destroyed) return;
 
     this.peerIds.add(peerId);
+    debugLog("peer JOINED", peerId, "total peers:", this.peerIds.size);
     this.sendSyncStep1(peerId);
     this.sendLocalAwareness(peerId);
   };
 
   private readonly handlePeerLeave = (peerId: string) => {
+    debugLog("peer LEFT", peerId, "remaining peers:", this.peerIds.size - 1);
     this.peerIds.delete(peerId);
 
     const clientIds = this.peerClientIds.get(peerId);
@@ -273,12 +344,14 @@ class TrysteroCollabProvider implements CollabProvider {
 
     try {
       const messageType = syncProtocol.readSyncMessage(decoder, replyEncoder, this.doc, this);
+      debugLog("sync message received from", peerId, "type:", messageType, "bytes:", payload.byteLength);
 
       if (
         messageType === syncProtocol.messageYjsSyncStep2 ||
         messageType === syncProtocol.messageYjsUpdate
       ) {
         this.didReceiveRemoteDoc = true;
+        debugLog("remote doc RECEIVED — full state synced");
         this.finishInitialSync(false);
       }
 
