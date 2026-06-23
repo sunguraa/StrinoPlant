@@ -1,8 +1,5 @@
 "use client";
 
-import { toAbsoluteUrl } from "@/lib/base-path";
-import { getSetupEditorHref } from "@/lib/routes";
-
 /**
  * Yjs document and transport provider factory for P2P collaboration.
  *
@@ -17,6 +14,9 @@ import type { Awareness } from "y-protocols/awareness";
 import * as Y from "yjs";
 import { createTrysteroTransportProvider } from "./trystero-provider";
 import { createWebrtcTransportProvider } from "./webrtc-provider";
+import { getUserIdentity } from "@/lib/identity";
+import { toAbsoluteUrl } from "@/lib/base-path";
+import { getSetupEditorHref } from "@/lib/routes";
 
 /** Collaborative user info shared via awareness. */
 export interface CollabUser {
@@ -62,37 +62,6 @@ interface CollabSessionEntry {
   destroyTimer: ReturnType<typeof setTimeout> | null;
   isDestroyed: boolean;
 }
-
-const USER_COLORS = [
-  "#FF6B6B",
-  "#4ECDC4",
-  "#45B7D1",
-  "#96CEB4",
-  "#FFEAA7",
-  "#DDA0DD",
-  "#98D8C8",
-  "#F7DC6F",
-  "#BB8FCE",
-  "#85C1E9",
-];
-
-const ANIMAL_NAMES = [
-  "Fox",
-  "Owl",
-  "Wolf",
-  "Bear",
-  "Hawk",
-  "Deer",
-  "Lynx",
-  "Raven",
-  "Otter",
-  "Eagle",
-  "Falcon",
-  "Panda",
-  "Tiger",
-  "Crane",
-  "Shark",
-];
 
 const SESSION_DESTROY_GRACE_PERIOD_MS = 250;
 
@@ -163,14 +132,6 @@ function scheduleSessionDestroy(entry: CollabSessionEntry): void {
   }, SESSION_DESTROY_GRACE_PERIOD_MS);
 }
 
-function randomUserName(): string {
-  return ANIMAL_NAMES[Math.floor(Math.random() * ANIMAL_NAMES.length)];
-}
-
-function randomColor(): string {
-  return USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
-}
-
 function normalizeCollabToken(token?: string | null): string {
   const trimmed = token?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : LEGACY_COLLAB_TOKEN;
@@ -184,29 +145,6 @@ function getCollabRoomName(setupId: string, collabToken?: string | null): string
   }
 
   return `strinoplant:${setupId}:${encodeURIComponent(normalizedToken)}`;
-}
-
-/**
- * Get or generate a persistent anonymous user identity (stored in localStorage).
- */
-function getUserIdentity(): { name: string; color: string } {
-  const key = "strinoplant_user_identity";
-  try {
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      const parsed = JSON.parse(stored) as { name?: string; color?: string };
-      if (parsed.name && parsed.color) return parsed as { name: string; color: string };
-    }
-  } catch {
-    // Ignore parse errors — regenerate identity
-  }
-  const identity = { name: randomUserName(), color: randomColor() };
-  try {
-    localStorage.setItem(key, JSON.stringify(identity));
-  } catch {
-    // localStorage may be full or unavailable
-  }
-  return identity;
 }
 
 /**
