@@ -72,6 +72,16 @@ interface SelectionBox {
 
 const MEDIA_ANNOTATION_DOT_RADIUS = 8;
 const MARQUEE_MIN_SIZE_PX = 4;
+const CANVAS_CLIPBOARD_APP = "strinoplant";
+const CANVAS_CLIPBOARD_KIND = "canvas-objects";
+const PASTE_OFFSET = 20;
+
+interface CanvasClipboardPayload {
+  app: typeof CANVAS_CLIPBOARD_APP;
+  kind: typeof CANVAS_CLIPBOARD_KIND;
+  version: 1;
+  objects: CanvasObject[];
+}
 
 function normalizeSelectionBox(box: SelectionBox): SelectionBox {
   return {
@@ -101,6 +111,44 @@ function isEditableTarget(target: EventTarget | null): boolean {
   }
 
   return false;
+}
+
+function snapshotCanvasObject(obj: CanvasObject): CanvasObject {
+  return {
+    ...obj,
+    points: obj.points ? [...obj.points] : undefined,
+  };
+}
+
+function parseCanvasClipboard(text: string): CanvasObject[] | null {
+  try {
+    const parsed = JSON.parse(text) as Partial<CanvasClipboardPayload>;
+
+    if (
+      parsed.app !== CANVAS_CLIPBOARD_APP ||
+      parsed.kind !== CANVAS_CLIPBOARD_KIND ||
+      !Array.isArray(parsed.objects)
+    ) {
+      return null;
+    }
+
+    return parsed.objects;
+  } catch {
+    return null;
+  }
+}
+
+function cloneCanvasObjectForPaste(obj: CanvasObject, layer: string): CanvasObject {
+  const overrides: Partial<CanvasObject> = { ...obj };
+  delete overrides.id;
+
+  return createCanvasObject(obj.type, {
+    ...overrides,
+    points: obj.points ? [...obj.points] : undefined,
+    x: obj.x + PASTE_OFFSET,
+    y: obj.y + PASTE_OFFSET,
+    layer,
+  });
 }
 
 function loadStoredCanvasState(setupId?: string) {
@@ -181,6 +229,7 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
     const panStart = useRef({ x: 0, y: 0 });
     const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const marqueeStart = useRef<{ x: number; y: number } | null>(null);
+    const canvasClipboardRef = useRef<CanvasObject[]>([]);
     const selectionDragState = useRef<{
       pointerStart: { x: number; y: number };
       startPositions: Map<string, { x: number; y: number }>;
@@ -629,6 +678,60 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
       setSelectedIds([]);
     }, [activeSelectedIds, objects, pushHistory, collabEnabled, collab]);
 
+    const handleCopySelected = useCallback(async () => {
+      if (activeSelectedIds.length === 0) return;
+
+      const selectedIdSet = new Set(activeSelectedIds);
+      const selectedObjects = objectsRef.current
+        .filter((obj) => selectedIdSet.has(obj.id))
+        .map(snapshotCanvasObject);
+
+      if (selectedObjects.length === 0) return;
+
+      canvasClipboardRef.current = selectedObjects;
+
+      try {
+        await navigator.clipboard?.writeText(
+          JSON.stringify({
+            app: CANVAS_CLIPBOARD_APP,
+            kind: CANVAS_CLIPBOARD_KIND,
+            version: 1,
+            objects: selectedObjects,
+          } satisfies CanvasClipboardPayload),
+        );
+      } catch {
+        // Same-tab fallback is already stored in canvasClipboardRef.
+      }
+    }, [activeSelectedIds]);
+
+    const handlePasteClipboard = useCallback(async () => {
+      let clipboardObjects: CanvasObject[] | null = null;
+      let readClipboard = false;
+
+      try {
+        const text = await navigator.clipboard?.readText();
+        readClipboard = typeof text === "string";
+        clipboardObjects = text ? parseCanvasClipboard(text) : null;
+      } catch {
+        clipboardObjects = null;
+      }
+
+      const sourceObjects = clipboardObjects ?? (readClipboard ? [] : canvasClipboardRef.current);
+      if (sourceObjects.length === 0) return;
+
+      const currentObjects = objectsRef.current;
+      const targetLayer = activeLayerId ?? "default";
+      const pastedObjects = sourceObjects.map((obj) => cloneCanvasObjectForPaste(obj, targetLayer));
+
+      pushHistory(currentObjects);
+      commitObjects([...currentObjects, ...pastedObjects]);
+      setSelectedIds(pastedObjects.map((obj) => obj.id));
+
+      if (collabEnabled) {
+        collab.syncBatch(pastedObjects, []);
+      }
+    }, [activeLayerId, collab, collabEnabled, commitObjects, pushHistory]);
+
     // -----------------------------------------------------------------------
     // Expose imperative handle for parent to delete objects by layer
     // -----------------------------------------------------------------------
@@ -681,9 +784,24 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
         ) {
           return;
         }
+        const key = e.key.toLowerCase();
+        const clipboardModifier = (e.ctrlKey || e.metaKey) && !e.altKey;
+
         if (e.code === "Space" && !e.repeat) {
           spaceHeld.current = true;
           setCursorStyle("grab");
+        }
+        if (clipboardModifier && key === "c") {
+          if (activeSelectedIds.length > 0) {
+            e.preventDefault();
+            void handleCopySelected();
+          }
+          return;
+        }
+        if (clipboardModifier && key === "v") {
+          e.preventDefault();
+          void handlePasteClipboard();
+          return;
         }
         if (e.ctrlKey && e.key === "z") {
           e.preventDefault();
@@ -714,7 +832,16 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
         window.removeEventListener("keydown", down);
         window.removeEventListener("keyup", up);
       };
-    }, [handleUndo, handleDeleteSelected, editingTextId, activeTool, changeActiveTool]);
+    }, [
+      handleUndo,
+      handleDeleteSelected,
+      handleCopySelected,
+      handlePasteClipboard,
+      editingTextId,
+      activeTool,
+      changeActiveTool,
+      activeSelectedIds.length,
+    ]);
 
     // -----------------------------------------------------------------------
     // Viewport clamping — prevent panning too far off-screen
@@ -1620,15 +1747,17 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
                     dash={[4, 2]}
                   />
                 )}
-                <Circle
-                  x={size / 2}
-                  y={size / 2}
-                  radius={size / 2}
-                  fill="#2a2a3e"
-                  stroke="#555"
-                  strokeWidth={1}
-                />
-                {iconImg && (
+                {obj.type === "abilityIcon" && (
+                  <Circle
+                    x={size / 2}
+                    y={size / 2}
+                    radius={size / 2}
+                    fill="#2a2a3e"
+                    stroke="#555"
+                    strokeWidth={1}
+                  />
+                )}
+                {iconImg && obj.type === "abilityIcon" && (
                   <Group
                     clipFunc={(ctx: {
                       arc: (x: number, y: number, r: number, start: number, end: number) => void;
@@ -1638,6 +1767,9 @@ export const StrategyCanvas = forwardRef<StrategyCanvasHandle, StrategyCanvasPro
                   >
                     <KonvaImage image={iconImg} x={2} y={2} width={size - 4} height={size - 4} />
                   </Group>
+                )}
+                {iconImg && obj.type === "utilityIcon" && (
+                  <KonvaImage image={iconImg} x={0} y={0} width={size} height={size} />
                 )}
               </Group>
             );

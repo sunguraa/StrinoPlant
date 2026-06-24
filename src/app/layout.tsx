@@ -35,6 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${fraunces.variable} font-sans h-screen overflow-hidden flex flex-col antialiased`}
       >
         {children}
