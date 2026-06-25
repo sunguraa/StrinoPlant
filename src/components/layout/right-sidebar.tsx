@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Eye, EyeOff, Trash2, Plus, Pencil } from "lucide-react";
+import { Eye, EyeOff, Trash2, Plus, Pencil, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STRINOVA_UTILITIES, getUtilityIconPath } from "@/lib/wiki/utilities";
+import { STRINOVA_UTILITIES, getUtilityIconPath, type UtilityItem } from "@/lib/wiki/utilities";
 import type { LayerConfig } from "@/types/canvas";
 
 interface RightSidebarProps {
@@ -29,6 +29,11 @@ export function RightSidebar({
 }: RightSidebarProps) {
   const [renamingLayerId, setRenamingLayerId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [grenadesOpen, setGrenadesOpen] = useState(true);
+  const [pingsOpen, setPingsOpen] = useState(true);
+
+  const grenadeUtilities = STRINOVA_UTILITIES.filter((util) => util.category !== "ping");
+  const pingUtilities = STRINOVA_UTILITIES.filter((util) => util.category === "ping");
 
   const handleUtilityDragStart = useCallback(
     (e: React.DragEvent<HTMLDivElement>, utilityId: string) => {
@@ -57,6 +62,54 @@ export function RightSidebar({
     setRenameValue("");
   }, [renamingLayerId, renameValue, onRenameLayer]);
 
+  const renderUtilityItem = useCallback(
+    (util: UtilityItem, showName: boolean) => {
+      const iconUrl = getUtilityIconPath(util.id);
+
+      return (
+        <div
+          key={util.id}
+          draggable
+          title={util.name}
+          onDragStart={(e) => handleUtilityDragStart(e, util.id)}
+          className={cn(
+            "flex cursor-grab flex-col items-center transition-opacity hover:opacity-80 active:cursor-grabbing",
+            showName ? "gap-1.5" : "w-10",
+          )}
+        >
+          <div
+            className={cn(
+              "flex aspect-square items-center justify-center",
+              showName
+                ? "w-[clamp(2.5rem,8vh,4.5rem)] rounded-full bg-muted ring-1 ring-border/40"
+                : "w-10 rounded-md transition-colors hover:bg-muted/60",
+            )}
+          >
+            {iconUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={iconUrl}
+                alt={util.name}
+                width={44}
+                height={44}
+                className={showName ? "h-[64%] w-[64%]" : "h-9 w-9 object-contain"}
+                draggable={false}
+              />
+            ) : (
+              <div className="h-[64%] w-[64%] animate-pulse rounded-full bg-muted-foreground/20" />
+            )}
+          </div>
+          {showName && (
+            <span className="text-center text-xs leading-tight text-muted-foreground">
+              {util.name}
+            </span>
+          )}
+        </div>
+      );
+    },
+    [handleUtilityDragStart],
+  );
+
   return (
     <aside
       className={cn(
@@ -70,38 +123,61 @@ export function RightSidebar({
         <h3 className="px-4 pt-3 pb-2 text-base font-semibold uppercase tracking-wider text-muted-foreground">
           Utilities
         </h3>
-        <div className="flex-1 overflow-y-auto px-4 pb-3">
-          <div className="grid grid-cols-3 gap-3">
-            {STRINOVA_UTILITIES.map((util) => {
-              const iconUrl = getUtilityIconPath(util.id);
-              return (
-                <div
-                  key={util.id}
-                  draggable
-                  onDragStart={(e) => handleUtilityDragStart(e, util.id)}
-                  className="flex cursor-grab flex-col items-center gap-1.5 transition-opacity hover:opacity-80 active:cursor-grabbing"
-                >
-                  <div className="flex aspect-square w-[clamp(2.5rem,8vh,4.5rem)] items-center justify-center rounded-full bg-muted ring-1 ring-border/40">
-                    {iconUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={iconUrl}
-                        alt={util.name}
-                        width={44}
-                        height={44}
-                        className="h-[64%] w-[64%]"
-                        draggable={false}
-                      />
-                    ) : (
-                      <div className="h-[64%] w-[64%] animate-pulse rounded-full bg-muted-foreground/20" />
-                    )}
-                  </div>
-                  <span className="text-center text-xs leading-tight text-muted-foreground">
-                    {util.name}
-                  </span>
+        <div className="flex-1 space-y-3 overflow-y-auto px-4 pb-3">
+          <div>
+            <button
+              type="button"
+              onClick={() => setGrenadesOpen((open) => !open)}
+              aria-expanded={grenadesOpen}
+              className="mb-2 flex w-full items-center justify-between text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Grenades
+              <ChevronDown
+                className={cn("h-4 w-4 shrink-0 transition-transform", grenadesOpen && "rotate-180")}
+              />
+            </button>
+            <div
+              className={cn(
+                "grid transition-[grid-template-rows] duration-200 ease-out",
+                grenadesOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+              )}
+            >
+              <div className="overflow-hidden">
+                <div className="grid grid-cols-3 gap-3">
+                  {grenadeUtilities.map((util) => renderUtilityItem(util, true))}
                 </div>
-              );
-            })}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={() => setPingsOpen((open) => !open)}
+              aria-expanded={pingsOpen}
+              className="mb-2 flex w-full items-center justify-between text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Pings
+              <ChevronDown
+                className={cn("h-4 w-4 shrink-0 transition-transform", pingsOpen && "rotate-180")}
+              />
+            </button>
+            <div
+              className={cn(
+                "grid transition-[grid-template-rows] duration-200 ease-out",
+                pingsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+              )}
+            >
+              <div className="overflow-hidden">
+                <div className="grid grid-cols-8 justify-items-center gap-2">
+                  {pingUtilities.map((util, index) => (
+                    <div key={util.id} className={cn("col-span-2", index === 4 && "col-start-2")}>
+                      {renderUtilityItem(util, false)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

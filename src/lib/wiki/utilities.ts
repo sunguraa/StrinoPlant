@@ -1,15 +1,15 @@
 import { normalizePublicAssetUrl } from "@/lib/base-path";
 import { getCachedUtilityPath } from "./cache";
 
-/** A Strinova utility item (grenade or tactical equipment) */
+/** A Strinova utility or ping item */
 export interface UtilityItem {
   id: string;
   name: string;
   /** Local icon path served from /public */
   iconPath?: string;
   /** Wiki file name used by the refresh script */
-  wikiFileName: string;
-  category: "grenade" | "tactical";
+  wikiFileName?: string;
+  category: "grenade" | "tactical" | "ping";
 }
 
 /** All known Strinova utility items */
@@ -44,7 +44,7 @@ const RAW_STRINOVA_UTILITIES: UtilityItem[] = [
   },
   {
     id: "smoke-bomb",
-    name: "Smoke Bomb",
+    name: "Smoke Grenade",
     iconPath: "/icons/utilities/smoke-bomb.png",
     wikiFileName: "Weapon_Smoke_Bomb.png",
     category: "grenade",
@@ -76,6 +76,48 @@ const RAW_STRINOVA_UTILITIES: UtilityItem[] = [
     iconPath: getCachedUtilityPath("shield-barrier"),
     wikiFileName: "Weapon_Shield_Barrier.png",
     category: "tactical",
+  },
+  {
+    id: "ping-normal",
+    name: "Normal Ping",
+    iconPath: "/icons/pings/ping-1.png",
+    category: "ping",
+  },
+  {
+    id: "ping-flag",
+    name: "Flag Ping",
+    iconPath: "/icons/pings/ping-2.png",
+    category: "ping",
+  },
+  {
+    id: "ping-danger",
+    name: "Danger Ping",
+    iconPath: "/icons/pings/ping-3.png",
+    category: "ping",
+  },
+  {
+    id: "ping-watch",
+    name: "Watch Ping",
+    iconPath: "/icons/pings/ping-4.png",
+    category: "ping",
+  },
+  {
+    id: "ping-bomb",
+    name: "Bomb Ping",
+    iconPath: "/icons/pings/ping-5.png",
+    category: "ping",
+  },
+  {
+    id: "ping-target",
+    name: "Target Ping",
+    iconPath: "/icons/pings/ping-6.png",
+    category: "ping",
+  },
+  {
+    id: "ping-heart",
+    name: "Heart Ping",
+    iconPath: "/icons/pings/ping-7.png",
+    category: "ping",
   },
 ];
 
